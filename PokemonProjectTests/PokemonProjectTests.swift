@@ -7,30 +7,67 @@
 
 import XCTest
 @testable import PokemonProject
+import Alamofire // Make sure to import Alamofire for testing
 
-final class PokemonProjectTests: XCTestCase {
+class PokemonFilterTests: XCTestCase {
+    var viewModel: PokeViewModel!
+    var expectedData: Data!
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+
+    override func setUp() {
+        super.setUp()
+        viewModel = PokeViewModel()
+        // Setup initial pokemon list
+        viewModel.pokemonList = [
+            Pokemon(name: "Bulbasaur", url: "https://pokeapi.co/api/v2/pokemon/1"),
+            Pokemon(name: "Ivysaur", url: "https://pokeapi.co/api/v2/pokemon/2"),
+            Pokemon(name: "Venusaur", url: "https://pokeapi.co/api/v2/pokemon/3"),
+            Pokemon(name: "Charmander", url: "https://pokeapi.co/api/v2/pokemon/4"),
+            Pokemon(name: "Charmeleon", url: "https://pokeapi.co/api/v2/pokemon/5"),
+            Pokemon(name: "Charizard", url: "https://pokeapi.co/api/v2/pokemon/6")
+        ]
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testPokemonFilterWithEmptySearchText() {
+        viewModel.searchText = ""
+        XCTAssertEqual(viewModel.filteredPokemon.count, 6)
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testPokemonFilterWithNonEmptySearchText() {
+        viewModel.searchText = "char"
+        XCTAssertEqual(viewModel.filteredPokemon.count, 3)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testGetDataWhileLoading() {
+        viewModel.isLoading = true
+        viewModel.getData()
+        // Test that no network request is made when already loading
     }
 
+    func testGetDataSuccessful() {
+        viewModel.isLoading = false
+        stubNetworkResponse(with: 200, data: expectedData)
+        viewModel.getData()
+        XCTAssertTrue(viewModel.isLoading)
+      
+    }
+
+    func testGetDataFailure() {
+        viewModel.isLoading = false
+        stubNetworkResponse(with: 500, data: nil)
+        viewModel.getData()
+        XCTAssertTrue(viewModel.isLoading)
+      
+    }
+
+    override func tearDown() {
+        viewModel = nil
+        
+        super.tearDown()
+    }
+
+   
+    private func stubNetworkResponse(with statusCode: Int, data: Data?) {
+    
+    }
 }
